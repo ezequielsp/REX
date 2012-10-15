@@ -28,4 +28,4 @@ optional arguments:
 
 ## Sreenshot
 
-![REX screenshot](github.com/acrozatier/rex/www/resources/images/rex.png)
+![REX screenshot](/rex/www/resources/images/rex.png)
