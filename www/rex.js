@@ -12,8 +12,6 @@ Ext.application({
     launch: function() {
         Ext.create('Ext.container.Viewport', {
             layout: 'border',
-            style: 'background-color: #000000',
-            padding: 3,
             items: [
             	{
 			        xtype: 'rexheader',

@@ -56,16 +56,10 @@ class rex():
         '''
             Return HTML content of the page header
         '''
-        html = '''<table id="header-table" style="width: 100%; height: 60px; border-bottom: solid 5px #DD0000; background-color: #000000;">
+        html = '''<table id="header-table" style="width: 100%; height: 40px; border-bottom: solid 2px #DD0000; background-color: #000000;">
                       <tr>
-                          <td rowspan=3 valign=center style="padding-left: 40px; width: 135px; font-size: 40px; font-weight: bold; color: #DD0000">REX</td>
-                          <td style="height: 20px"></td>
-                      </tr>
-                      <tr>
-                          <td style="font-size: 20px; color: #FFFFFF;"> - Regular expressions explorer tool</td>
-                      </tr>
-                      <tr>
-                          <td style="height: 20px"></td>
+                          <td style="padding-left: 15px; width: 75px; font-size: 25px; font-weight: bold; color: #DD0000">REX</td>
+                          <td style="font-size: 15px; color: #FFFFFF;"> - Regular expressions explorer tool</td>
                       </tr>
                   </table>'''
         return '{"success": true, "html": %s}' %(json.dumps(html),)

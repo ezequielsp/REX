@@ -3,5 +3,5 @@ Ext.define('REX.view.Header' ,{
     alias: 'widget.rexheader',
     
     region: 'north',
-	height: 65,
+	height: 40,
 });
