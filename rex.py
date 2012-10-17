@@ -12,6 +12,7 @@ import re
 
 from os.path import dirname, abspath, join
 from sys import argv
+from xml.etree.ElementTree import Element, SubElement, tostring
 
 def handleUnexpectedError():
     '''
@@ -56,13 +57,16 @@ class rex():
         '''
             Return HTML content of the page header
         '''
-        html = '''<table id="header-table" style="width: 100%; height: 40px; border-bottom: solid 2px #DD0000; background-color: #000000;">
-                      <tr>
-                          <td style="padding-left: 15px; width: 75px; font-size: 25px; font-weight: bold; color: #DD0000">REX</td>
-                          <td style="font-size: 15px; color: #FFFFFF;"> - Regular expressions explorer tool</td>
-                      </tr>
-                  </table>'''
-        return '{"success": true, "html": %s}' %(json.dumps(html),)
+        table = Element('table')
+        table.set('id', 'header-table')
+        tr = SubElement(table, 'tr')
+        td = SubElement(tr, 'td')
+        td.set('id', 'pgm-name')
+        td.text = 'REX'
+        td = SubElement(tr, 'td')
+        td.set('id', 'pgm-description')
+        td.text = ' - Regular expressions explorer tool'
+        return '{"success": true, "html": %s}' %(json.dumps(tostring(table)),)
     
     @cherrypy.expose
     def getResult(self, regex, ignore_case, locale, multi_line, dot_all, unicode, verbose, input_text):
@@ -112,65 +116,184 @@ class rex():
         
         try:
             #Check if regex is valid by compiling it
-            compiled_regex = re.compile(regex, flags=eval(flags))
+            if flags:
+                compiled_regex = re.compile(regex, flags=eval(flags))
+            else:
+                compiled_regex = re.compile(regex)
         except:
             html = 'Invalid regular expression'
             return '{"success": true, "html": %s}' %(json.dumps(html),)
         
         #Compute operations and build results
-        html = ''
+        div = Element('div')
+        div.set('class', 'rex-result')
         
         #1) Match
         match_result = compiled_regex.match(input_text)
+        
+        #Build output
+        p = SubElement(div, 'p')
+        p.set('class', 'rex-result')
+        span = SubElement(p, 'span')
+        span.set('id', 'header')
+        span.text = '"Match" operation:'
+        span = SubElement(p, 'span')
+        
         if match_result:
-            html += '<span style="font-weight: bold; text-transform: uppercase">"Match" operation:</span> <span style="color: #0AAB15">Success</span><br/><br/>'
+            span.set('class', 'success')
+            span.text = ' Success'
         else:
-            html += '<span style="font-weight: bold; text-transform: uppercase">"Match" operation:</span> <span style="color: #DD0000">Failure</span><br/><br/>'
+            span.set('class', 'failure')
+            span.text = ' Failure'
         
         #2) Search
         search_result = compiled_regex.search(input_text)
+        
+        #Build output
+        p = SubElement(div, 'p')
+        p.set('class', 'rex-result')
+        span = SubElement(p, 'span')
+        span.set('id', 'header')
+        span.text = '"Search" operation:'
+        span = SubElement(p, 'span')
+        
         if search_result:
-            html += '<span style="font-weight: bold; text-transform: uppercase">"Search" operation:</span> <span style="color: #0AAB15">Success</span><br/><br/>'
+            span.set('class', 'success')
+            span.text = ' Success'
             
             #3) List of all groups
-            html += '<p style="line-height: 1.5em"><span style="font-weight: bold; text-transform: uppercase">List of the groups found:</span><br/>'
-            html += '<span style="font-weight: bold">Instruction:</span> &lt;regex&gt;.groups() - <span style="font-weight: bold">Python object obtained:</span> tuple</span><br/>'
-            html += '<span style="font-weight: bold">Values:</span><br/>'
+            p = SubElement(div, 'p')
+            p.set('class', 'rex-result')
+            span = SubElement(p, 'span')
+            span.set('id', 'header')
+            span.text = 'List of the groups found:'
+            br = SubElement(p, 'br')
+            span = SubElement(p, 'span')
+            span.set('class', 'bold')
+            span.text = 'Instruction: '
+            span = SubElement(p, 'span')
+            span.text = '<regex>.groups() - '
+            span = SubElement(p, 'span')
+            span.set('class', 'bold')
+            span.text = 'Python object obtained: '
+            span = SubElement(p, 'span')
+            span.text = 'tuple'
+            br = SubElement(p, 'br')
+            span = SubElement(p, 'span')
+            span.set('class', 'bold')
+            span.text = 'Values: '
+            
             if search_result.groups():
+                #Found some group
+                br = SubElement(p, 'br')
                 for group in search_result.groups():
-                    html += '<span style="padding-left: 50px">%s</span><br/>' %(group,)
-                html += '<span style="font-weight: bold">Raw result:</span> %s<br/><br/></p>' %(search_result.groups().__repr__(),)
+                    span = SubElement(p, 'span')
+                    span.set('class', 'padded')
+                    span.text = '%s' %(group,)
+                    br = SubElement(p, 'br')
+                span = SubElement(p, 'span')
+                span.set('class', 'bold')
+                span.text = 'Raw result: '
+                span = SubElement(p, 'span')
+                span.text = '%s' %(search_result.groups().__repr__(),)
             else:
-                #No group
-                html += '<span style="padding-left: 50px; color: #DD0000">No group found</span><br/><br/></p>'
+                #No group found
+                span = SubElement(p, 'span')
+                span.set('class', 'failure')
+                span.text = 'No group found'
             
             #4) List of all named group found
-            html += '<p style="line-height: 1.5em"><span style="font-weight: bold; text-transform: uppercase">List of the named groups found:</span><br/>'
-            html += '<span style="font-weight: bold">Instruction:</span> &lt;regex&gt;.groupdict() - <span style="font-weight: bold">Python object obtained:</span> dictionary</span><br/>'
-            html += '<span style="font-weight: bold">Values:</span><br/>'
+            p = SubElement(div, 'p')
+            p.set('class', 'rex-result')
+            span = SubElement(p, 'span')
+            span.set('id', 'header')
+            span.text = 'List of the named groups found:'
+            br = SubElement(p, 'br')
+            span = SubElement(p, 'span')
+            span.set('class', 'bold')
+            span.text = 'Instruction: '
+            span = SubElement(p, 'span')
+            span.text = '<regex>.groupdict() - '
+            span = SubElement(p, 'span')
+            span.set('class', 'bold')
+            span.text = 'Python object obtained: '
+            span = SubElement(p, 'span')
+            span.text = 'dictionary'
+            br = SubElement(p, 'br')
+            span = SubElement(p, 'span')
+            span.set('class', 'bold')
+            span.text = 'Values: '
+            
             if search_result.groupdict():
+                br = SubElement(p, 'br')
                 for named_group in search_result.groupdict():
-                    html += '<span style="padding-left: 50px">Group name: %s, value: %s</span><br/>' %(named_group, search_result.groupdict()[named_group])
-                html += '<span style="font-weight: bold">Raw result:</span> %s<br/><br/></p>' %(search_result.groupdict().__repr__(),)
+                    span = SubElement(p, 'span')
+                    span.set('class', 'bold')
+                    span.text = 'Group name: '
+                    span = SubElement(p, 'span')
+                    span.text = '%s - ' %(named_group,)
+                    span = SubElement(p, 'span')
+                    span.set('class', 'bold')
+                    span.text = 'Value: '
+                    span = SubElement(p, 'span')
+                    span.text = '%s' %(search_result.groupdict()[named_group],)
+                    br = SubElement(p, 'br')
+                span = SubElement(p, 'span')
+                span.set('class', 'bold')
+                span.text = 'Raw result: '
+                span = SubElement(p, 'span')
+                span.text = '%s' %(search_result.groupdict().__repr__(),)
             else:
-                #No group
-                html += '<span style="padding-left: 50px; color: #DD0000">No named group found</span><br/><br/></p>'
+                #No named group
+                span = SubElement(p, 'span')
+                span.set('class', 'failure')
+                span.text = 'No named group found'
         else:
-            html += '<span style="font-weight: bold">"Search" operation:</span> <span style="color: #DD0000">Failure</span><br/><br/>'
+            span.set('class', 'failure')
+            span.text = ' Failure'
         
         #5) Findall results
-        html += '<p style="line-height: 1.5em"><span style="font-weight: bold; text-transform: uppercase">"Findall" operation results:</span><br/>'
-        html += '<span style="font-weight: bold">Instruction:</span> &lt;regex&gt;.findall() - <span style="font-weight: bold">Python object obtained:</span> list</span><br/>'
-        html += '<span style="font-weight: bold">Values:</span><br/>'
+        p = SubElement(div, 'p')
+        p.set('class', 'rex-result')
+        span = SubElement(p, 'span')
+        span.set('id', 'header')
+        span.text = '"Findall" operation results:'
+        br = SubElement(p, 'br')
+        span = SubElement(p, 'span')
+        span.set('class', 'bold')
+        span.text = 'Instruction: '
+        span = SubElement(p, 'span')
+        span.text = '<regex>.findall() - '
+        span = SubElement(p, 'span')
+        span.set('class', 'bold')
+        span.text = 'Python object obtained: '
+        span = SubElement(p, 'span')
+        span.text = 'list'
+        br = SubElement(p, 'br')
+        span = SubElement(p, 'span')
+        span.set('class', 'bold')
+        span.text = 'Values: '
+        
         findall_results = compiled_regex.findall(input_text)
+        
         if findall_results:
+            br = SubElement(p, 'br')
             for result in findall_results:
-                html += '<span style="padding-left: 50px">%s</span><br/>' %(result,)
-            html += '<span style="font-weight: bold">Raw result:</span> %s<br/></p>' %(findall_results.__repr__(),)
+                span = SubElement(p, 'span')
+                span.set('class', 'padded')
+                span.text = '%s' %(result,)
+                br = SubElement(p, 'br')
+            span = SubElement(p, 'span')
+            span.set('class', 'bold')
+            span.text = 'Raw result: '
+            span = SubElement(p, 'span')
+            span.text = '%s' %(findall_results.__repr__(),)
         else:
-            html += '<span style="padding-left: 50px; color: #DD0000">No "findall" results</span><br/></p>'
+            span = SubElement(p, 'span')
+            span.set('class', 'failure')
+            span.text = 'No "findall" results found'
             
-        return '{"success": true, "html": %s}' %(json.dumps(html),)
+        return '{"success": true, "html": %s}' %(json.dumps(tostring(div)),)
     
 def parseArguments(arguments):
     '''

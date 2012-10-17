@@ -1,0 +1,49 @@
+#header-table {
+	width: 100%;
+	height: 40px;
+	border-bottom: solid 2px #DD0000;
+	background-color: #000000;
+}
+
+#pgm-name {
+	padding-left: 15px;
+	width: 75px;
+	font-size: 25px;
+	font-weight: bold;
+	color: #DD0000;
+}
+
+#pgm-description {
+	font-size: 15px;
+	color: #FFFFFF;
+}
+
+div.rex-result {
+	line-height: 1.5em;
+	padding-left: 10px;
+}
+
+#header {
+	font-weight: bold;
+	text-transform: uppercase;
+}
+
+.success {
+	color: #0AAB15;
+}
+
+.failure {
+	color: #DD0000;
+}
+
+p.rex-result {
+	padding-top: 20px;
+}
+
+span.bold {
+	font-weight: bold;
+}
+
+span.padded {
+	padding-left: 50px;
+}
