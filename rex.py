@@ -14,6 +14,8 @@ from os.path import dirname, abspath, join
 from sys import argv
 from xml.etree.ElementTree import Element, SubElement, tostring
 
+import lib.pyratemp.pyratemp as pyratemp
+
 def handleUnexpectedError():
     '''
         Custom error handler, do not display error message
@@ -55,7 +57,7 @@ class rex():
     @cherrypy.expose
     def getPageHeader(self):
         '''
-            Return HTML content of the page header
+            Return HTML content of the page header - Use Element and SubElement to build HTML
         '''
         table = Element('table')
         table.set('id', 'header-table')
@@ -69,7 +71,7 @@ class rex():
         return '{"success": true, "html": %s}' %(json.dumps(tostring(table)),)
     
     @cherrypy.expose
-    def getResult(self, regex, ignore_case, locale, multi_line, dot_all, unicode, verbose, input_text):
+    def getResult(self, regex, input_text, flags):
         '''
             Perform re operations and return results
         '''
@@ -78,42 +80,9 @@ class rex():
             html = 'REX cannot perform any operation if it has not a regular expression and an input text'
             return '{"success": true, "html": %s}' %(json.dumps(html),)
         
-        #Compute regex flags value
-        flags = ''
-        try:
-            if eval(ignore_case):
-                flags += 're.IGNORECASE|'
-        except:
-            pass
-        try:
-            if eval(locale):
-                flags += 're.LOCALE|'
-        except:
-            pass
-        try:
-            if eval(multi_line):
-                flags += 're.MULTILINE|'
-        except:
-            pass
-        try:
-            if eval(dot_all):
-                flags += 're.DOTALL|'
-        except:
-            pass
-        try:
-            if eval(unicode):
-                flags += 're.UNICODE|'
-        except:
-            pass
-        try:
-            if eval(verbose):
-                flags += 're.VERBOSE|'
-        except:
-            pass
-        
+        #Get flags correct value
         if flags:
-            flags = flags[:-1] #Remove trailing "|"
-        
+            flags = flags[:-1]
         try:
             #Check if regex is valid by compiling it
             if flags:
@@ -125,175 +94,51 @@ class rex():
             return '{"success": true, "html": %s}' %(json.dumps(html),)
         
         #Compute operations and build results
-        div = Element('div')
-        div.set('class', 'rex-result')
+        template_result = pyratemp.Template(filename='%s/resources/templates/template_result.html' %(self._APP_DIR,), data={}, escape=pyratemp.HTML)
         
         #1) Match
         match_result = compiled_regex.match(input_text)
         
-        #Build output
-        p = SubElement(div, 'p')
-        p.set('class', 'rex-result')
-        span = SubElement(p, 'span')
-        span.set('id', 'header')
-        span.text = '"Match" operation:'
-        span = SubElement(p, 'span')
-        
-        if match_result:
-            span.set('class', 'success')
-            span.text = ' Success'
-        else:
-            span.set('class', 'failure')
-            span.text = ' Failure'
-        
         #2) Search
         search_result = compiled_regex.search(input_text)
         
-        #Build output
-        p = SubElement(div, 'p')
-        p.set('class', 'rex-result')
-        span = SubElement(p, 'span')
-        span.set('id', 'header')
-        span.text = '"Search" operation:'
-        span = SubElement(p, 'span')
-        
+        #3) List of all groups
         if search_result:
-            span.set('class', 'success')
-            span.text = ' Success'
-            
-            #3) List of all groups
-            p = SubElement(div, 'p')
-            p.set('class', 'rex-result')
-            span = SubElement(p, 'span')
-            span.set('id', 'header')
-            span.text = 'List of the groups found:'
-            br = SubElement(p, 'br')
-            span = SubElement(p, 'span')
-            span.set('class', 'bold')
-            span.text = 'Instruction: '
-            span = SubElement(p, 'span')
-            span.text = '<regex>.groups() - '
-            span = SubElement(p, 'span')
-            span.set('class', 'bold')
-            span.text = 'Python object obtained: '
-            span = SubElement(p, 'span')
-            span.text = 'tuple'
-            br = SubElement(p, 'br')
-            span = SubElement(p, 'span')
-            span.set('class', 'bold')
-            span.text = 'Values: '
-            
-            if search_result.groups():
-                #Found some group
-                br = SubElement(p, 'br')
-                for group in search_result.groups():
-                    span = SubElement(p, 'span')
-                    span.set('class', 'padded')
-                    span.text = '%s' %(group,)
-                    br = SubElement(p, 'br')
-                span = SubElement(p, 'span')
-                span.set('class', 'bold')
-                span.text = 'Raw result: '
-                span = SubElement(p, 'span')
-                span.text = '%s' %(search_result.groups().__repr__(),)
+            groups_list = [group.__repr__() for group in search_result.groups()]
+            if groups_list:
+                groups_list_raw = search_result.groups().__repr__()
             else:
-                #No group found
-                span = SubElement(p, 'span')
-                span.set('class', 'failure')
-                span.text = 'No group found'
-            
-            #4) List of all named group found
-            p = SubElement(div, 'p')
-            p.set('class', 'rex-result')
-            span = SubElement(p, 'span')
-            span.set('id', 'header')
-            span.text = 'List of the named groups found:'
-            br = SubElement(p, 'br')
-            span = SubElement(p, 'span')
-            span.set('class', 'bold')
-            span.text = 'Instruction: '
-            span = SubElement(p, 'span')
-            span.text = '<regex>.groupdict() - '
-            span = SubElement(p, 'span')
-            span.set('class', 'bold')
-            span.text = 'Python object obtained: '
-            span = SubElement(p, 'span')
-            span.text = 'dictionary'
-            br = SubElement(p, 'br')
-            span = SubElement(p, 'span')
-            span.set('class', 'bold')
-            span.text = 'Values: '
-            
-            if search_result.groupdict():
-                br = SubElement(p, 'br')
-                for named_group in search_result.groupdict():
-                    span = SubElement(p, 'span')
-                    span.set('class', 'bold')
-                    span.text = 'Group name: '
-                    span = SubElement(p, 'span')
-                    span.text = '%s - ' %(named_group,)
-                    span = SubElement(p, 'span')
-                    span.set('class', 'bold')
-                    span.text = 'Value: '
-                    span = SubElement(p, 'span')
-                    span.text = '%s' %(search_result.groupdict()[named_group],)
-                    br = SubElement(p, 'br')
-                span = SubElement(p, 'span')
-                span.set('class', 'bold')
-                span.text = 'Raw result: '
-                span = SubElement(p, 'span')
-                span.text = '%s' %(search_result.groupdict().__repr__(),)
-            else:
-                #No named group
-                span = SubElement(p, 'span')
-                span.set('class', 'failure')
-                span.text = 'No named group found'
+                groups_list_raw = ''
         else:
-            span.set('class', 'failure')
-            span.text = ' Failure'
+            groups_list = []
+            groups_list_raw = ''
         
+        #4) List of all named group found
+        if search_result:
+            named_groups = search_result.groupdict()
+            named_groups_list = [(group.__repr__(), named_groups[group].__repr__(),) for group in named_groups]
+            if named_groups:
+                named_groups_raw = named_groups.__repr__()
+            else:
+                named_groups_raw = ''
+        else:
+            named_groups_list = []
+            named_groups_raw = ''
+            
         #5) Findall results
-        p = SubElement(div, 'p')
-        p.set('class', 'rex-result')
-        span = SubElement(p, 'span')
-        span.set('id', 'header')
-        span.text = '"Findall" operation results:'
-        br = SubElement(p, 'br')
-        span = SubElement(p, 'span')
-        span.set('class', 'bold')
-        span.text = 'Instruction: '
-        span = SubElement(p, 'span')
-        span.text = '<regex>.findall() - '
-        span = SubElement(p, 'span')
-        span.set('class', 'bold')
-        span.text = 'Python object obtained: '
-        span = SubElement(p, 'span')
-        span.text = 'list'
-        br = SubElement(p, 'br')
-        span = SubElement(p, 'span')
-        span.set('class', 'bold')
-        span.text = 'Values: '
+        findall_results = [result.__repr__() for result in compiled_regex.findall(input_text)]
+        findall_results_raw = compiled_regex.findall(input_text)
         
-        findall_results = compiled_regex.findall(input_text)
-        
-        if findall_results:
-            br = SubElement(p, 'br')
-            for result in findall_results:
-                span = SubElement(p, 'span')
-                span.set('class', 'padded')
-                span.text = '%s' %(result,)
-                br = SubElement(p, 'br')
-            span = SubElement(p, 'span')
-            span.set('class', 'bold')
-            span.text = 'Raw result: '
-            span = SubElement(p, 'span')
-            span.text = '%s' %(findall_results.__repr__(),)
-        else:
-            span = SubElement(p, 'span')
-            span.set('class', 'failure')
-            span.text = 'No "findall" results found'
-            
-        return '{"success": true, "html": %s}' %(json.dumps(tostring(div)),)
+        return '{"success": true, "html": %s}' %(json.dumps(template_result(match_result=match_result,
+                                                                            search_result=search_result,
+                                                                            groups_list=groups_list,
+                                                                            groups_list_raw=groups_list_raw,
+                                                                            named_groups_list=named_groups_list,
+                                                                            named_groups_raw=named_groups_raw,
+                                                                            findall_results=findall_results,
+                                                                            findall_results_raw=findall_results_raw).encode('utf-8')
+                                                            ),
+                                                 )
     
 def parseArguments(arguments):
     '''

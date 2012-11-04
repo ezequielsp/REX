@@ -1,0 +1,54 @@
+<div class="rex-result">
+    <p class="rex-result">
+        <span id="header">"Match" operation: </span><!--(if match_result is not None)--><span class="success">Success</span><!--(else)--><span class="failure">Failure</span><!--(end)-->
+        <br/><span id="bold">Instruction: </span>&lt;regex&gt;.match(input_text)
+    </p>
+    <p class="rex-result">
+        <span id="header">"Search" operation: </span><!--(if search_result is not None)--><span class="success">Success</span><!--(else)--><span class="failure">Failure</span><!--(end)-->
+        <br/><span id="bold">Instruction: </span>&lt;regex&gt;.search(input_text)
+    </p>
+    <!--(if search_result is not None)-->
+    <p class="rex-result">
+        <span id="header">List of the groups found:</span><br/>
+        <span id="bold">Instruction: </span>&lt;regex&gt;.groups() - <span id="bold">Python object obtained: </span>tupple<br/>
+        <span id="bold">Values: </span>
+        <!--(if not groups_list)-->
+        <span class="failure">No group found</span>
+        <!--(end)-->
+        <!--(for group in groups_list)-->
+        <br/><span class="padded">@!group!@</span>
+        <!--(end)-->
+        <!--(if groups_list_raw)-->
+        <br/><span id="bold">Raw result: </span>@!groups_list_raw!@<br/>
+        <!--(end)-->
+    </p>
+    <p class="rex-result">
+        <span id="header">List of the named groups found:</span><br/>
+        <span id="bold">Instruction: </span>&lt;regex&gt;.groupdict() - <span id="bold">Python object obtained: </span>dictionary<br/>
+        <span id="bold">Values: </span>
+        <!--(if not named_groups_list)-->
+        <span class="failure">No named group found</span>
+        <!--(end)-->
+        <!--(for group_name, value in named_groups_list)-->
+        <br/><span id="bold" class="padded">Group name: </span>@!group_name!@ - <span id="bold">Value: </span>@!value!@
+        <!--(end)-->
+        <!--(if named_groups_raw)-->
+        <br/><span id="bold">Raw result: </span>@!named_groups_raw!@<br/>
+        <!--(end)-->
+    </p>
+    <p class="rex-result">
+        <span id="header">Findall" operation results:</span><br/>
+        <span id="bold">Instruction: </span>&lt;regex&gt;.findall(input_text) - <span id="bold">Python object obtained: </span>list<br/>
+        <span id="bold">Values: </span>
+        <!--(if not findall_results)-->
+        <span class="failure">No "findall" result found</span>
+        <!--(end)-->
+        <!--(for result in findall_results)-->
+        <br/><span class="padded">@!result!@</span>
+        <!--(end)-->
+        <!--(if findall_results_raw)-->
+        <br/><span id="bold">Raw result: </span>@!findall_results_raw!@<br/>
+        <!--(end)-->
+    </p>
+    <!--(end)-->
+</div>

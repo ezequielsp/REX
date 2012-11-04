@@ -15,18 +15,23 @@ Ext.define('REX.controller.Input', {
     
     submitForm: function() {
     	var form = Ext.getCmp('rex-input');
+    	var flags = '';
+    	
+    	/** Build flags string here, thus leading to a cleaner and nicer code on server side **/
+    	form.getForm().getValues()['ignore-case'] ? flags = flags.concat('re.INGNORECASE|') : false;
+    	form.getForm().getValues()['locale'] ? flags = flags.concat('re.LOCALE|') : false;
+    	form.getForm().getValues()['multi-line'] ? flags = flags.concat('re.MULTILINE|') : false;
+    	form.getForm().getValues()['dot-all'] ? flags = flags.concat('re.DOTALL|') : false;
+    	form.getForm().getValues()['unicode'] ? flags = flags.concat('re.UNICODE|') : false;
+    	form.getForm().getValues()['verbose'] ? flags = flags.concat('re.VERBOSE|') : false;
+    	
     	Ext.Ajax.request({
 		    url: 'getResult',
 		    method: 'POST',
 		    params: {
 		    	regex: form.getForm().getValues()['regex'],
-		    	ignore_case: form.getForm().getValues()['ignore-case'] ? 'True' : 'False',
-		    	locale: form.getForm().getValues()['locale'] ? 'True' : 'False',
-		    	multi_line: form.getForm().getValues()['multi-line'] ? 'True' : 'False',
-		    	dot_all: form.getForm().getValues()['dot-all'] ? 'True' : 'False',
-		    	unicode: form.getForm().getValues()['unicode'] ? 'True' : 'False',
-		    	verbose: form.getForm().getValues()['verbose'] ? 'True' : 'False',
-		    	input_text: form.getForm().getValues()['input_text']
+		    	input_text: form.getForm().getValues()['input_text'],
+		    	flags: flags
 		    },
 		    success: function(response, opts) {
 		        var obj = Ext.decode(response.responseText);
