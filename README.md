@@ -26,6 +26,6 @@ optional arguments:
                         specify the TCP port on which REX will listen to
 ```
 
-## Sreenshot
+## Sreen-shot
 
 ![REX screenshot](/www/resources/images/rex.png)
