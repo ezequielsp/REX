@@ -6,6 +6,7 @@ Ext.define('REX.view.Input' ,{
     title: 'REX input',
     
     width: '45%',
+    split: true,
     bodyStyle: 'padding-top: 15; padding-left: 5; padding-right: 5; padding-bottom: 5',
     
     items: [

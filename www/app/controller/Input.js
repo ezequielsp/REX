@@ -18,7 +18,7 @@ Ext.define('REX.controller.Input', {
     	var flags = '';
     	
     	/** Build flags string here, thus leading to a cleaner and nicer code on server side **/
-    	form.getForm().getValues()['ignore-case'] ? flags = flags.concat('re.INGNORECASE|') : false;
+    	form.getForm().getValues()['ignore-case'] ? flags = flags.concat('re.IGNORECASE|') : false;
     	form.getForm().getValues()['locale'] ? flags = flags.concat('re.LOCALE|') : false;
     	form.getForm().getValues()['multi-line'] ? flags = flags.concat('re.MULTILINE|') : false;
     	form.getForm().getValues()['dot-all'] ? flags = flags.concat('re.DOTALL|') : false;
